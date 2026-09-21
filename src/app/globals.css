@@ -12,13 +12,3 @@ body {
     linear-gradient(90deg, rgba(212, 175, 55, 0.08) 1px, transparent 1px);
   background-size: 48px 48px;
 }
-
-.gold-line {
-  background: linear-gradient(90deg, transparent, #d4af37, transparent);
-}@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-body {
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
-}
