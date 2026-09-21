@@ -2,20 +2,26 @@ export function extractPdfText(buffer: Buffer) {
   const raw = buffer.toString("latin1");
   const chunks: string[] = [];
 
-  const paren = raw.matchAll(/\(((?:\\\)|\\n|\\r|\\\\|[^\\())]){2,})\)/g);
-  for (const match of paren) {
-    const text = decodePdfString(match[1]);
+  collect(raw, /\(((?:\\\)|\\n|\\r|\\\\|[^\\())]){2,})\)/g, (value) => {
+    const text = decodePdfString(value);
     if (text.trim().length >= 2) chunks.push(text);
-  }
+  });
 
-  const hex = raw.matchAll(/<([0-9A-Fa-f]{8,})>/g);
-  for (const match of hex) {
-    const text = decodePdfHex(match[1]);
+  collect(raw, /<([0-9A-Fa-f]{8,})>/g, (value) => {
+    const text = decodePdfHex(value);
     if (text.trim().length >= 2) chunks.push(text);
-  }
+  });
 
-  const joined = chunks.join(" ").replace(/[ \t]+/g, " ").replace(/\s+\n/g, "\n").trim();
-  return joined.slice(0, 18000);
+  return chunks.join(" ").replace(/[ \t]+/g, " ").replace(/\s+\n/g, "\n").trim().slice(0, 18000);
+}
+
+function collect(raw: string, pattern: RegExp, onMatch: (value: string) => void) {
+  const regex = new RegExp(pattern.source, pattern.flags);
+  let result = regex.exec(raw);
+  while (result) {
+    if (result[1]) onMatch(result[1]);
+    result = regex.exec(raw);
+  }
 }
 
 function decodePdfString(input: string) {
@@ -31,7 +37,7 @@ function decodePdfString(input: string) {
 
 function decodePdfHex(input: string) {
   const hex = input.replace(/\s+/g, "");
-  const bytes = [];
+  const bytes: number[] = [];
   for (let i = 0; i < hex.length; i += 2) {
     bytes.push(parseInt(hex.slice(i, i + 2), 16));
   }
